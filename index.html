@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Industry 4.0 Job Radar | Manchester</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6; /* Tailwind gray-100 */
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        }
+        .skill-tag {
+            transition: all 0.2s ease-in-out;
+        }
+        .skill-tag:hover {
+            transform: translateY(-2px);
+        }
+        /* Custom scrollbar for job list */
+        .job-list-container::-webkit-scrollbar {
+            width: 8px;
+        }
+        .job-list-container::-webkit-scrollbar-track {
+            background: #f1f1f1; 
+            border-radius: 4px;
+        }
+        .job-list-container::-webkit-scrollbar-thumb {
+            background: #cbd5e1; 
+            border-radius: 4px;
+        }
+        .job-list-container::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8; 
+        }
+    </style>
+</head>
+<body class="text-gray-800 antialiased h-screen flex flex-col">
+
+    <nav class="bg-slate-900 text-white shadow-lg z-10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <svg class="w-8 h-8 text-blue-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path></svg>
+                    <span class="font-bold text-xl tracking-tight">Industry 4.0 Radar <span class="text-xs text-blue-400 ml-2 font-normal bg-slate-800 px-2 py-1 rounded-full">Manchester Hub</span></span>
+                </div>
+                <div class="flex items-center space-x-4 text-sm font-medium">
+                    <span class="text-gray-300">Profile: MSc Digital Design & Mfg</span>
+                    <button class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg transition-colors">Alerts On</button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="flex-grow flex overflow-hidden max-w-7xl mx-auto w-full">
+        
+        <!-- Sidebar: Filters -->
+        <aside class="w-80 flex-shrink-0 p-6 overflow-y-auto border-r border-gray-200 bg-white">
+            <h2 class="text-lg font-semibold mb-6 text-gray-900 border-b pb-2">Filter Roles</h2>
+
+            <!-- Career Track Filter -->
+            <div class="mb-8">
+                <h3 class="text-sm font-medium text-gray-700 mb-3">Career Track</h3>
+                <div class="space-y-2" id="track-filters">
+                    <!-- Checkboxes populated by JS -->
+                </div>
+            </div>
+
+            <!-- Core Skills Filter -->
+            <div class="mb-8">
+                <h3 class="text-sm font-medium text-gray-700 mb-3">Required Skills</h3>
+                <div class="flex flex-wrap gap-2" id="skill-filters">
+                    <!-- Pills populated by JS -->
+                </div>
+            </div>
+
+            <!-- Distance Filter -->
+            <div>
+                <h3 class="text-sm font-medium text-gray-700 mb-3">Commute Radius (from M1)</h3>
+                <input type="range" min="5" max="50" value="25" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600" id="distance-slider">
+                <div class="flex justify-between text-xs text-gray-500 mt-2">
+                    <span>5 miles</span>
+                    <span id="distance-display" class="font-bold text-blue-600">25 miles</span>
+                    <span>50 miles</span>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content Area: Job Listings -->
+        <div class="flex-grow flex flex-col bg-gray-50 p-6 overflow-hidden">
+            
+            <div class="flex justify-between items-center mb-6">
+                <div>
+                    <h1 class="text-2xl font-bold text-gray-900">Live Opportunities</h1>
+                    <p class="text-sm text-gray-500 mt-1">Showing <span id="job-count" class="font-semibold text-blue-600">0</span> roles matching your advanced manufacturing profile.</p>
+                </div>
+                <div class="flex gap-2">
+                    <select id="sort-select" class="text-sm border-gray-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                        <option value="relevance">Sort by Match %</option>
+                        <option value="newest">Sort by Newest</option>
+                    </select>
+                </div>
+            </div>
+
+            <div id="job-list" class="flex-grow overflow-y-auto job-list-container space-y-4 pb-4 pr-2">
+                <!-- Job cards injected via JS -->
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Core Data: Simulating live job data tailored to the user's profile in the Manchester area
+        const jobsData = [
+            {
+                id: 1,
+                title: "Additive Manufacturing Project Engineer",
+                company: "AMRC North West",
+                location: "Preston, UK (30 mi)",
+                distance: 30,
+                track: "Additive Manufacturing",
+                matchScore: 98,
+                posted: "2 days ago",
+                salary: "£32,000 - £38,000",
+                description: "Lead scale-up projects utilizing our large-format robotic cells. Focus on polymer rheology and extrusion parameter optimization for recycled composites. Perfect for a recent MSc graduate with LFAM experience.",
+                skills: ["LFAM", "Robotic Kinematics", "Polymer Extrusion", "Process Optimization"],
+                url: "https://www.amrc.co.uk/pages/careers"
+            },
+            {
+                id: 2,
+                title: "Sustainable Materials Engineer (Grad Scheme)",
+                company: "SUEZ UK Innovation Lab",
+                location: "Manchester City Centre (1 mi)",
+                distance: 1,
+                track: "Sustainability",
+                matchScore: 92,
+                posted: "Just Now",
+                salary: "£30,000 + Bonus",
+                description: "Join our circular economy team to analyze and process industrial plastic waste streams into viable feedstocks for 3D printing applications. Chemical engineering background highly preferred.",
+                skills: ["Chemical Engineering", "Lifecycle Assessment", "Recycled Polymers", "R&D"],
+                url: "#"
+            },
+            {
+                id: 3,
+                title: "Computational Designer (Automotive)",
+                company: "Arup Advanced Tech",
+                location: "Salford Quays (3 mi)",
+                distance: 3,
+                track: "Computational Design",
+                matchScore: 88,
+                posted: "5 days ago",
+                salary: "£35,000",
+                description: "Utilize generative algorithms to reduce component weight for EV mobility projects. Must be proficient in FEA simulation and parametric modeling environments.",
+                skills: ["Generative Design", "FEA", "Fusion 360", "Lightweighting"],
+                url: "#"
+            },
+            {
+                id: 4,
+                title: "Product Design Engineer (NPD)",
+                company: "Dyson Technology Hub",
+                location: "Manchester, UK (2 mi)",
+                distance: 2,
+                track: "General Design/NPD",
+                matchScore: 80,
+                posted: "1 week ago",
+                salary: "£33,000",
+                description: "End-to-end product development involving rapid FDM/SLA prototyping, iterative CAD design, and DFM analysis for next-generation consumer hardware.",
+                skills: ["Rapid Prototyping", "CAD", "Iterative Design", "FDM/SLA"],
+                url: "#"
+            },
+            {
+                id: 5,
+                title: "Metrology & Reverse Engineering Tech",
+                company: "Precision Aero Parts",
+                location: "Stockport, UK (7 mi)",
+                distance: 7,
+                track: "Reverse Engineering",
+                matchScore: 85,
+                posted: "3 days ago",
+                salary: "£28,000 - £34,000",
+                description: "Utilize structured light scanning (Artec/Einscan) to create digital twins of legacy aerospace components. Must be skilled in mesh repair and scan-to-CAD workflows.",
+                skills: ["3D Scanning", "Mesh Repair", "Digital Twin", "Point-cloud Data"],
+                url: "#"
+            },
+            {
+                id: 6,
+                title: "Circular Economy Design Consultant",
+                company: "Jacobs Engineering",
+                location: "Manchester, UK (0 mi)",
+                distance: 0,
+                track: "Sustainability",
+                matchScore: 95,
+                posted: "12 hours ago",
+                salary: "Competitive",
+                description: "Advise manufacturing clients on transitioning to mono-material product architectures and utilizing Granta Eco-Audits to prove carbon lifecycle reductions.",
+                skills: ["Granta Eco-Audit", "Mono-materials", "Consulting", "LCA"],
+                url: "#"
+            }
+        ];
+
+        // Unique extraction for filters
+        const tracks = [...new Set(jobsData.map(job => job.track))];
+        const allSkills = [...new Set(jobsData.flatMap(job => job.skills))];
+
+        // State management
+        let activeTracks = new Set(tracks);
+        let activeSkills = new Set();
+        let maxDistance = 25;
+        let currentSort = 'relevance';
+
+        function initUI() {
+            // Render Track Checkboxes
+            const trackContainer = document.getElementById('track-filters');
+            tracks.forEach(track => {
+                const id = `track-${track.replace(/\s+/g, '-').toLowerCase()}`;
+                const div = document.createElement('div');
+                div.className = 'flex items-center';
+                div.innerHTML = `
+                    <input type="checkbox" id="${id}" value="${track}" checked
+                        class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 cursor-pointer">
+                    <label for="${id}" class="ml-2 text-sm text-gray-600 cursor-pointer">${track}</label>
+                `;
+                div.querySelector('input').addEventListener('change', (e) => {
+                    if (e.target.checked) {
+                        activeTracks.add(e.target.value);
+                    } else {
+                        activeTracks.delete(e.target.value);
+                    }
+                    renderJobs();
+                });
+                trackContainer.appendChild(div);
+            });
+
+            // Render Skill Pills
+            const skillContainer = document.getElementById('skill-filters');
+            allSkills.slice(0, 12).forEach(skill => { // Limit initial view
+                const btn = document.createElement('button');
+                btn.className = 'px-3 py-1 text-xs font-medium rounded-full border border-gray-300 text-gray-600 bg-white hover:border-blue-500 hover:text-blue-600 transition-colors skill-tag';
+                btn.textContent = skill;
+                btn.dataset.active = 'false';
+                btn.addEventListener('click', () => {
+                    if (btn.dataset.active === 'false') {
+                        btn.dataset.active = 'true';
+                        btn.classList.replace('bg-white', 'bg-blue-50');
+                        btn.classList.replace('border-gray-300', 'border-blue-500');
+                        btn.classList.replace('text-gray-600', 'text-blue-700');
+                        activeSkills.add(skill);
+                    } else {
+                        btn.dataset.active = 'false';
+                        btn.classList.replace('bg-blue-50', 'bg-white');
+                        btn.classList.replace('border-blue-500', 'border-gray-300');
+                        btn.classList.replace('text-blue-700', 'text-gray-600');
+                        activeSkills.delete(skill);
+                    }
+                    renderJobs();
+                });
+                skillContainer.appendChild(btn);
+            });
+
+            // Distance Slider Event
+            const slider = document.getElementById('distance-slider');
+            const display = document.getElementById('distance-display');
+            slider.addEventListener('input', (e) => {
+                maxDistance = parseInt(e.target.value);
+                display.textContent = `${maxDistance} miles`;
+                renderJobs();
+            });
+
+            // Sort Select Event
+            document.getElementById('sort-select').addEventListener('change', (e) => {
+                currentSort = e.target.value;
+                renderJobs();
+            });
+
+            // Initial Render
+            renderJobs();
+        }
+
+        function renderJobs() {
+            const container = document.getElementById('job-list');
+            const countDisplay = document.getElementById('job-count');
+            
+            // Filter logic
+            let filtered = jobsData.filter(job => {
+                const trackMatch = activeTracks.has(job.track);
+                const distanceMatch = job.distance <= maxDistance;
+                const skillMatch = activeSkills.size === 0 || job.skills.some(s => activeSkills.has(s));
+                return trackMatch && distanceMatch && skillMatch;
+            });
+
+            // Sort logic
+            filtered.sort((a, b) => {
+                if (currentSort === 'relevance') {
+                    return b.matchScore - a.matchScore;
+                } else {
+                    // Simple mock sort for 'newest' based on ID for demonstration
+                    return a.id - b.id; 
+                }
+            });
+
+            // Update Count
+            countDisplay.textContent = filtered.length;
+
+            // Render HTML
+            container.innerHTML = '';
+            if (filtered.length === 0) {
+                container.innerHTML = `
+                    <div class="flex flex-col items-center justify-center h-full text-gray-500">
+                        <svg class="w-16 h-16 mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        <p class="text-lg">No roles found matching these criteria.</p>
+                        <p class="text-sm">Try increasing your commute radius or clearing skill filters.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            filtered.forEach(job => {
+                const card = document.createElement('div');
+                card.className = 'glass-panel p-6 rounded-xl border border-gray-100 hover:border-blue-200 transition-all flex flex-col gap-4';
+                
+                const skillsHtml = job.skills.map(s => 
+                    `<span class="px-2.5 py-1 bg-gray-100 text-gray-600 text-xs font-medium rounded-md">${s}</span>`
+                ).join('');
+
+                // Determine Match Badge Color
+                let matchColor = 'bg-green-100 text-green-700';
+                if(job.matchScore < 90) matchColor = 'bg-yellow-100 text-yellow-700';
+                if(job.matchScore < 85) matchColor = 'bg-gray-100 text-gray-700';
+
+                card.innerHTML = `
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <div class="flex items-center gap-3 mb-1">
+                                <h2 class="text-lg font-bold text-gray-900">${job.title}</h2>
+                                <span class="px-2 py-0.5 rounded text-xs font-bold ${matchColor}">${job.matchScore}% Match</span>
+                            </div>
+                            <p class="text-sm font-medium text-blue-600">${job.company}</p>
+                        </div>
+                        <span class="text-xs text-gray-500 bg-white border px-2 py-1 rounded">${job.posted}</span>
+                    </div>
+                    
+                    <div class="flex gap-4 text-sm text-gray-600">
+                        <div class="flex items-center gap-1">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                            ${job.location}
+                        </div>
+                        <div class="flex items-center gap-1">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                            ${job.salary}
+                        </div>
+                        <div class="flex items-center gap-1">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                            ${job.track}
+                        </div>
+                    </div>
+
+                    <p class="text-sm text-gray-700 leading-relaxed">${job.description}</p>
+                    
+                    <div class="flex justify-between items-center mt-2 border-t pt-4">
+                        <div class="flex flex-wrap gap-2">
+                            ${skillsHtml}
+                        </div>
+                        <a href="${job.url}" target="_blank" class="px-4 py-2 bg-slate-900 text-white text-sm font-medium rounded-lg hover:bg-slate-800 transition-colors shadow-sm flex items-center gap-2">
+                            View Details
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                        </a>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // Initialize App
+        document.addEventListener('DOMContentLoaded', initUI);
+    </script>
+</body>
+</html>
